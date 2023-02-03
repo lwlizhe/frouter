@@ -1,0 +1,25 @@
+builders:
+  path_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factories: [ "pathBuilder" ]
+    build_extensions: { ".dart": [ ".g.part" ] }
+    runs_before: [ ":map_builder" ]
+    auto_apply: dependents #none，dependents，root_package，all_packages
+    build_to: cache # source, cache
+
+  router_register_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factories: [ "routerRegisterBuilder" ]
+    build_extensions: { ".dart": [ ".router" ] }
+    runs_before: [ ":map_builder" ]
+    applies_builders:
+      - frouter:map_builder
+    auto_apply: dependents #none，dependents，root_package，all_packages
+    build_to: cache # source, cache
+
+post_process_builders:
+  map_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factory: mapPostProcessBuilder
+
+
