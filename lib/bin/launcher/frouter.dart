@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:frouter/bin/core/frouter_logistics_center.dart';
 import 'package:frouter/bin/entity/frouter_router_map.dart';
-import 'package:frouter/bin/entity/frouter_warehouse.dart';
 import 'package:frouter/bin/facade/frouter_post_card.dart';
 
 class FRouter {
@@ -17,6 +15,10 @@ class FRouter {
     logisticsCenter.init(routerMap);
   }
 
+  void updateBundle(String bundleJson) {
+    logisticsCenter.updateBundle(bundleJson);
+  }
+
   FRouterPostCard build(String path) {
     if (path.isEmpty) {
       throw new Exception("Parameter is invalid!");
@@ -30,8 +32,8 @@ class FRouter {
     return FRouterPostCard(group: extractGroup, path: path);
   }
 
-  Object? navigation(BuildContext context, FRouterPostCard postCard) {
-    return logisticsCenter.navigation(context, postCard);
+  Object? navigation(FRouterPostCard postCard) {
+    return logisticsCenter.navigation(postCard);
   }
 
   /// Extract the default group from path.

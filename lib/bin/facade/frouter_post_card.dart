@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:frouter/bin/builder/frouter_widget_builder.dart';
 import 'package:frouter/bin/entity/frouter_meta.dart';
-import 'package:frouter/bin/entity/frouter_warehouse.dart';
-import 'package:frouter/bin/interface/router_intercept.dart';
 import 'package:frouter/bin/launcher/frouter.dart';
 
 class FRouterPostCard<D> extends FRouterMeta {
@@ -31,9 +28,8 @@ class FRouterPostCard<D> extends FRouterMeta {
   }
 
   /// Navigation to the route with path in postcard.
-  Object? navigation(BuildContext context) {
+  Object? navigation() {
     return FRouter().navigation(
-      context,
       this,
     );
   }

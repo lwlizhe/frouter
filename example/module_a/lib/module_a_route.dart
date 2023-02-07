@@ -4,11 +4,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:frouter/bin/entity/frouter_router_map.dart' as _i1;
 import 'package:frouter/bin/builder/frouter_widget_builder.dart' as _i2;
-import 'package:flutter/material.dart' as _i3;
-import 'package:module_a/module_a_route_export.dart' as _i4;
-import 'package:module_a/entity/user_info.dart' as _i5;
+import 'package:module_a/module_a_route_export.dart' as _i3;
+import 'package:module_a/entity/user_info.dart' as _i4;
 import 'package:frouter/bin/helper/safety_parameter_transform_utils.dart'
-    as _i6;
+    as _i5;
 
 class FModuleRouterMap extends _i1.FRouterRouterMap {
   @override
@@ -29,20 +28,33 @@ class FModuleRouterMap extends _i1.FRouterRouterMap {
   @override
   Map<String, _i2.FRouterWidgetBuilder> get routerMap {
     return <String, _i2.FRouterWidgetBuilder>{
-      'user/user_info':
-          (_i3.BuildContext context, Map<String, String>? parameters) {
-        return _i4.UserInfoPage(
-          userInfo: _i5.UserInfo(
-            name: _i6.transform<String>(parameters?['name']) as String,
+      'package:module_a/page/user_info_page.dart:UserInfoPage':
+          (Map<String, String>? parameters) {
+        return _i3.UserInfoPage(
+          userInfo: _i4.UserInfo(
+            name: _i5.transform<String>(parameters?['name']) as String,
           ),
-          userToken: _i6.transform<String>(parameters?['userTokenA']) as String,
+          userToken: _i5.transform<String>(parameters?['userTokenA']) as String,
         );
       },
     };
   }
 
   @override
+  Map<String, String> get routerMapBundle {
+    return <String, String>{
+      'user/user_info':
+          'package:module_a/page/user_info_page.dart:UserInfoPage',
+    };
+  }
+
+  @override
   Map<String, _i2.FRouterProviderBuilder> get providerMap {
     return <String, _i2.FRouterProviderBuilder>{};
+  }
+
+  @override
+  Map<String, String> get providerBundle {
+    return <String, String>{};
   }
 }

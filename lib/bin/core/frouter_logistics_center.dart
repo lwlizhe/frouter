@@ -1,9 +1,4 @@
-// const codeTemplate = """
-// test
-// """;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:frouter/bin/entity/frouter_meta.dart';
 import 'package:frouter/bin/entity/frouter_router_map.dart';
 import 'package:frouter/bin/facade/frouter_post_card.dart';
@@ -21,6 +16,10 @@ class LogisticsCenter {
 
   Future init(FRouterRouterMap routerMap) async {
     routerWareHouse = FRouterWareHouse.fromRouterMap(routerMap);
+  }
+
+  void updateBundle(String routerJsonString) async {
+    routerWareHouse.updateFromRouterBundle(routerJsonString);
   }
 
   FRouterPostCard getTarget(
@@ -66,21 +65,21 @@ class LogisticsCenter {
     return FRouterPostCard(
       path: '',
       group: '',
-      widgetBuilder: (context, parameters) {
+      widgetBuilder: (parameters) {
         return emptyWidget;
       },
     );
   }
 
-  dynamic navigation(BuildContext context, FRouterPostCard postCard) {
+  dynamic navigation(FRouterPostCard postCard) {
     final targetPostCard = getTarget(postCard, routerWareHouse);
     switch (targetPostCard.type) {
       case FRouterType.widget:
         return postCard.widgetBuilder
-            ?.call(context, postCard.uri?.queryParameters);
+            ?.call(postCard.uri?.queryParameters);
       case FRouterType.provider:
         return postCard.providerBuilder
-            ?.call(context, postCard.uri?.queryParameters);
+            ?.call(postCard.uri?.queryParameters);
       case FRouterType.unKnow:
       default:
         return emptyWidget;

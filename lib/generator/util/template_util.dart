@@ -1,12 +1,7 @@
-import 'dart:ffi';
-
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:build_runner_core/build_runner_core.dart';
 import 'package:code_builder/code_builder.dart';
-import 'package:frouter/annotation/router.dart';
 import 'package:frouter/entity/entity.dart';
 
 class GeneratorTemplateUtil {
@@ -16,38 +11,56 @@ class GeneratorTemplateUtil {
       required Map<String, List<RouterItemScriptContentEntity>> sourceMap}) {
     bool isRoot = buildStep.inputId.package == packageGraph.root.name;
 
-    final routerMapClass = Class((b) => b
-      ..name = isRoot ? 'FRouterMap' : 'FModuleRouterMap'
-      ..extend = refer('FRouterRouterMap',
-          'package:frouter/bin/entity/frouter_router_map.dart')
-      ..methods.addAll([
-        _buildWareHouseGroupInfoMethod(
-            'hostRouterGroup', packageGraph.root.name),
-        _buildWareHouseGroupInfoMethod(
-            'currentRouterGroup', buildStep.inputId.package),
+    final routerMapClass = Class((b) {
+      b
+        ..name = isRoot ? 'FRouterMap' : 'FModuleRouterMap'
+        ..extend = refer('FRouterRouterMap',
+            'package:frouter/bin/entity/frouter_router_map.dart')
+        ..methods.addAll([
+          _buildWareHouseGroupInfoMethod(
+              'hostRouterGroup', packageGraph.root.name),
+          _buildWareHouseGroupInfoMethod(
+              'currentRouterGroup', buildStep.inputId.package),
 
-        isRoot
-            ? _rootGroupGetMethod(packageGraph, sourceMap)
-            : _subGroupGetMethod(packageGraph, buildStep, sourceMap),
+          isRoot
+              ? _rootGroupGetMethod(packageGraph, sourceMap)
+              : _subGroupGetMethod(packageGraph, buildStep, sourceMap),
 
-        _buildWareHouseRouterMapMethod(
-            buildStep,
-            sourceMap,
-            'routerMap',
-            'FRouterWidgetBuilder',
-            'package:frouter/bin/builder/frouter_widget_builder.dart',
-            'Widget'),
-        _buildWareHouseRouterMapMethod(
-            buildStep,
-            sourceMap,
-            'providerMap',
-            'FRouterProviderBuilder',
-            'package:frouter/bin/builder/frouter_widget_builder.dart',
-            'FRouterProvider'),
+          /// todo: 拦截器部分，暂时懒得做了
+          // if(isRoot) _buildLogicCenter(),
+        ]);
 
-        /// todo: 拦截器部分，暂时懒得做了
-        // if(isRoot) _buildLogicCenter(),
-      ]));
+      final List<RouterItemScriptContentEntity> routerSourceList = [];
+      final List<RouterItemScriptContentEntity> providerSourceList = [];
+
+      for (var routerItem in (sourceMap[buildStep.inputId.package] ?? [])) {
+        if (routerItem.element is ClassElement) {
+          final supportList =
+              ((routerItem.element as ClassElement).allSupertypes);
+
+          if (supportList
+              .where((element) =>
+                  'Widget' == element.getDisplayString(withNullability: true))
+              .isNotEmpty) {
+            routerSourceList.add(routerItem);
+          } else if (supportList
+              .where((element) =>
+                  'FRouterProvider' ==
+                  element.getDisplayString(withNullability: true))
+              .isNotEmpty) {
+            providerSourceList.add(routerItem);
+          }
+        }
+      }
+
+      b.methods.add(_RouterBuilder.buildRouterMapMethod(routerSourceList));
+      b.methods
+          .add(_RouterBuilder.buildRouterMapBundleMethod(routerSourceList));
+
+      b.methods.add(_ProviderBuilder.buildProviderMapMethod(providerSourceList));
+      b.methods
+          .add(_ProviderBuilder.buildProviderMapBundleMethod(providerSourceList));
+    });
 
     final library = Library((b) => b.body.add(routerMapClass));
 
@@ -119,6 +132,28 @@ class GeneratorTemplateUtil {
             ]));
       });
 
+  static Method _buildWareHouseGroupInfoMethod(
+      String methodName, String methodContent) {
+    return Method((methodBuilder) {
+      methodBuilder
+        ..name = methodName
+        ..annotations.add(refer('override'))
+        ..type = MethodType.getter
+        // ..requiredParameters.add(Parameter((b) => b
+        //   ..name = parameterName
+        //   ..type = refer('String')))
+        ..returns = refer('String')
+        ..body = Block((b) {
+          b.statements.addAll([
+            Code('return \'$methodContent\';'),
+          ]);
+        });
+    });
+  }
+
+}
+
+class _BuilderHelper {
   static List<Code> _buildParameterCodeList(
       RouterItemScriptContentEntity routerItem) {
     // buildParameterString
@@ -131,7 +166,8 @@ class GeneratorTemplateUtil {
         String parameterKey = parameter.name;
         String parameterName = parameter.name;
         String parameterType = parameter.type.element2?.name ?? '';
-        String parameterTypeWithNullable = parameter.type.getDisplayString(withNullability: true);
+        String parameterTypeWithNullable =
+            parameter.type.getDisplayString(withNullability: true);
         String parameterUrl = parameter
                 .type.element2?.enclosingElement3?.source?.uri
                 .toString() ??
@@ -231,10 +267,9 @@ class GeneratorTemplateUtil {
     // todo: 目前的原则：能跑就行～～ 罗永浩抽象图.jpg
     return [
       Code(
-          '\'${(routerItem.annotation.objectValue.getField('pathUri')?.toStringValue() ?? '')}\':'),
+          '\'${'${routerItem.element.source?.uri.toString() ?? ''}:${routerItem.element.displayName}'}\':'),
       Code('('),
-      refer('BuildContext', 'package:flutter/material.dart').code,
-      Code(' context,Map<String,String>? parameters) {'),
+      Code('Map<String,String>? parameters) {'),
       Code('return '),
       refer(
               (routerItem.element as ClassElement)
@@ -254,126 +289,135 @@ class GeneratorTemplateUtil {
       Code('},'),
     ];
   }
+}
 
-  static Method _buildWareHouseGroupInfoMethod(
-      String methodName, String methodContent) {
+class _RouterBuilder {
+  static const String _routerMapSymbol = 'FRouterWidgetBuilder';
+  static const String _routerMapSymbolUrl =
+      'package:frouter/bin/builder/frouter_widget_builder.dart';
+
+  static Method buildRouterMapMethod(
+      List<RouterItemScriptContentEntity> sourceList) {
     return Method((methodBuilder) {
       methodBuilder
-        ..name = methodName
+        ..name = 'routerMap'
         ..annotations.add(refer('override'))
         ..type = MethodType.getter
-        // ..requiredParameters.add(Parameter((b) => b
-        //   ..name = parameterName
-        //   ..type = refer('String')))
-        ..returns = refer('String')
-        ..body = Block((b) {
-          b.statements.addAll([
-            Code('return \'$methodContent\';'),
-          ]);
-        });
-    });
-  }
-
-  static Method _buildWareHouseRouterMapMethod(
-      PostProcessBuildStep buildStep,
-      Map<String, List<RouterItemScriptContentEntity>> sourceMap,
-      String methodName,
-      String parameterType,
-      String parameterUrl,
-      String filterType) {
-    final contentList =
-        (sourceMap[buildStep.inputId.package] ?? []).expand((routerItem) {
-      if (routerItem.element is ClassElement &&
-          ((routerItem.element as ClassElement)
-              .allSupertypes
-              .where((element) =>
-                  filterType == element.getDisplayString(withNullability: true))
-              .isNotEmpty)) {
-        return _buildParameterCodeList(routerItem);
-      } else {
-        return [];
-      }
-    });
-
-    return Method((methodBuilder) {
-      methodBuilder
-        ..name = methodName
-        ..annotations.add(refer('override'))
-        ..type = MethodType.getter
-        // ..requiredParameters.add(Parameter((b) => b
-        //   ..name = parameterName
-        //   ..type = refer('String')))
         ..returns = TypeReference((b) => b
           ..symbol = 'Map'
           ..types.addAll([
             refer('String'),
             TypeReference((b) => b
-              ..symbol = parameterType
-              ..url = parameterUrl
+              ..symbol = _routerMapSymbol
+              ..url = _routerMapSymbolUrl
               ..isNullable = false),
           ]))
         ..body = Block((b) {
           b.statements.addAll([
-            Code('return <'),
-            refer(
-              'String',
-            ).code,
-            Code(','),
-            refer(parameterType, parameterUrl).code,
-            Code('>{'),
+            const Code('return <String,'),
+            refer(_routerMapSymbol, _routerMapSymbolUrl).code,
+            const Code('>{'),
+            ...sourceList
+                .expand((element) =>
+                    _BuilderHelper._buildParameterCodeList(element))
+                .toList(),
+            const Code('};'),
           ]);
-
-          if (contentList.isNotEmpty) {
-            b.statements.addAll([
-              ...contentList,
-            ]);
-          }
-
-          b.statements.add(Code('};'));
         });
     });
   }
 
-  static Field _interceptField() => Field(
-        (b) => b
-          ..name = 'interceptList'
-          ..type = TypeReference((b) => b
-            ..symbol = 'List'
-            ..types.add(TypeReference((b) => b
-              ..symbol = 'FRouterIntercept'
-              ..url = 'package:frouter/bin/interface/router_intercept.dart'
-              ..isNullable = false)))
-          ..assignment = Block.of([
-            Code('['),
-            Code(']'),
-          ]),
-      );
-
-  /// A method forwarding to `run`.
-  Method _main() => Method((b) => b
-    ..name = 'main'
-    ..returns = refer('void')
-    ..modifier = MethodModifier.async
-    ..requiredParameters.add(Parameter((b) => b
-      ..name = 'args'
-      ..type = TypeReference((b) => b
-        ..symbol = 'List'
-        ..types.add(refer('String')))))
-    ..optionalParameters.add(Parameter((b) => b
-      ..name = 'sendPort'
-      ..type = TypeReference((b) => b
-        ..symbol = 'SendPort'
-        ..url = 'dart:isolate'
-        ..isNullable = true)))
-    ..body = Block.of([
-      refer('run', 'package:build_runner/build_runner.dart')
-          .call([refer('args'), refer('_builders')])
-          .awaited
-          .assignVar('result')
-          .statement,
-      refer('sendPort')
-          .nullSafeProperty('send')
-          .call([refer('result')]).statement,
-      refer('exitCode', 'dart:io').assign(refer('result')).statement,
-    ]));
+  static Method buildRouterMapBundleMethod(
+      List<RouterItemScriptContentEntity> sourceList) {
+    return Method((methodBuilder) {
+      methodBuilder
+        ..name = 'routerMapBundle'
+        ..annotations.add(refer('override'))
+        ..type = MethodType.getter
+        ..returns = TypeReference((b) => b
+          ..symbol = 'Map'
+          ..types.addAll([
+            refer('String'),
+            refer('String'),
+          ]))
+        ..body = Block((b) {
+          b.statements.addAll([
+            const Code('return <String,String>{'),
+            ...sourceList.expand((element) => [
+                  Code(
+                      '\'${(element.annotation.objectValue.getField('pathUri')?.toStringValue() ?? '')}\':'),
+                  Code(
+                      '\'${'${element.element.source?.uri.toString() ?? ''}:${element.element.displayName}'}\','),
+                ]),
+            const Code('};'),
+          ]);
+        });
+    });
+  }
 }
+
+class _ProviderBuilder {
+  static const String _routerMapSymbol = 'FRouterProviderBuilder';
+  static const String _routerMapSymbolUrl =
+      'package:frouter/bin/builder/frouter_widget_builder.dart';
+
+  static Method buildProviderMapMethod(
+      List<RouterItemScriptContentEntity> sourceList) {
+    return Method((methodBuilder) {
+      methodBuilder
+        ..name = 'providerMap'
+        ..annotations.add(refer('override'))
+        ..type = MethodType.getter
+        ..returns = TypeReference((b) => b
+          ..symbol = 'Map'
+          ..types.addAll([
+            refer('String'),
+            TypeReference((b) => b
+              ..symbol = _routerMapSymbol
+              ..url = _routerMapSymbolUrl
+              ..isNullable = false),
+          ]))
+        ..body = Block((b) {
+          b.statements.addAll([
+            const Code('return <String,'),
+            refer(_routerMapSymbol, _routerMapSymbolUrl).code,
+            const Code('>{'),
+            ...sourceList
+                .expand((element) =>
+                    _BuilderHelper._buildParameterCodeList(element))
+                .toList(),
+            const Code('};'),
+          ]);
+        });
+    });
+  }
+
+  static Method buildProviderMapBundleMethod(
+      List<RouterItemScriptContentEntity> sourceList) {
+    return Method((methodBuilder) {
+      methodBuilder
+        ..name = 'providerBundle'
+        ..annotations.add(refer('override'))
+        ..type = MethodType.getter
+        ..returns = TypeReference((b) => b
+          ..symbol = 'Map'
+          ..types.addAll([
+            refer('String'),
+            refer('String'),
+          ]))
+        ..body = Block((b) {
+          b.statements.addAll([
+            const Code('return <String,String>{'),
+            ...sourceList.expand((element) => [
+                  Code(
+                      '\'${(element.annotation.objectValue.getField('pathUri')?.toStringValue() ?? '')}\':'),
+                  Code(
+                      '\'${'${element.element.source?.uri.toString() ?? ''}:${element.element.displayName}'}\','),
+                ]),
+            const Code('};'),
+          ]);
+        });
+    });
+  }
+}
+
