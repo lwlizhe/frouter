@@ -12,16 +12,15 @@ class FRouterWareHouse {
   Map<String, FRouterWareHouse> subGroups = {};
 
   // Cache route and metas
-  Map<String, Map<String, FRouterMeta>> routers = {};
+  Map<String, FRouterMeta> routers = {};
   Map<String, String> routerMapBundle = {};
 
   // Cache provider
-  Map<String, Map<String, FRouterProviderBuilder>> providers = {};
+  Map<String, FRouterProviderBuilder> providers = {};
   Map<String, String> providerBundle = {};
 
   // Cache interceptor
   List<FRouterIntercept> interceptors = [];
-
 
   static FRouterWareHouse fromRouterMap(FRouterRouterMap routerMap) {
     FRouterWareHouse wareHouse = FRouterWareHouse();
@@ -33,43 +32,34 @@ class FRouterWareHouse {
 
     wareHouse.currentGroup = routerMap.currentRouterGroup;
 
-    for (var path in routerMap.routerMapBundle.keys) {
-      final pathUri = Uri.tryParse(path);
+    for (var bundleKey in routerMap.routerMapBundle.keys) {
+      final pathUri = Uri.tryParse(bundleKey);
+      final bundleValue = routerMap.routerMapBundle[bundleKey] ?? '';
       if (pathUri != null && pathUri.pathSegments.length >= 2) {
         final groupKey = pathUri.pathSegments[0];
-        if (wareHouse.routers[groupKey] == null) {
-          wareHouse.routers[groupKey] = {};
-        }
 
-        wareHouse.routers[groupKey]![path] = FRouterMeta(
-          path: path,
+        wareHouse.routers[bundleValue] = FRouterMeta(
+          path: bundleValue,
           group: groupKey,
           type: FRouterType.widget,
-          widgetBuilder: routerMap.routerMap[routerMap.routerMapBundle[path]],
+          widgetBuilder: routerMap.routerMap[bundleValue],
         );
       }
     }
 
-    for (var path in routerMap.providerBundle.keys) {
-      final pathUri = Uri.tryParse(path);
+    for (var bundleKey in routerMap.providerBundle.keys) {
+      final pathUri = Uri.tryParse(bundleKey);
+      final bundleValue = routerMap.providerBundle[bundleKey] ?? '';
       if (pathUri != null && pathUri.pathSegments.length >= 2) {
-        final groupKey = pathUri.pathSegments[0];
-        final routerProvider =
-        routerMap.providerMap[routerMap.routerMapBundle[path]];
+        final routerProvider = routerMap.providerMap[bundleValue];
         if (routerProvider != null) {
-          if (wareHouse.providers[groupKey] == null) {
-            wareHouse.providers[groupKey] = {};
-          }
-          wareHouse.providers[groupKey]![path] = routerProvider;
+          wareHouse.providers[bundleValue] = routerProvider;
         }
       }
     }
 
-    wareHouse.interceptors.addAll(routerMap.interceptList);
-
     wareHouse.routerMapBundle.addAll(routerMap.routerMapBundle);
     wareHouse.providerBundle.addAll(routerMap.providerBundle);
-
 
     wareHouse = _addAllFromSubGroup(wareHouse);
 
@@ -77,41 +67,33 @@ class FRouterWareHouse {
   }
 
   void updateFromRouterBundle(String routerBundleJsonString) {
-    Map<String, String> newRouterBundle = json.decode(routerBundleJsonString);
-    routerMapBundle = Map.from(newRouterBundle);
+    final newRouterBundle = json.decode(routerBundleJsonString);
+    newRouterBundle.keys.forEach((currentBundleKey) {
+      final currentBundleValue = newRouterBundle[currentBundleKey];
+      final originalBundleValue = routerMapBundle[currentBundleKey];
+      if (currentBundleValue != originalBundleValue) {
+        routerMapBundle[currentBundleKey] = currentBundleValue;
+      }
+    });
   }
 
   static FRouterWareHouse _addAllFromSubGroup(
       FRouterWareHouse targetWareHouse) {
     for (var subGroup in targetWareHouse.subGroups.values) {
-      for (var groupKey in subGroup.routers.keys) {
-        for (var pathKey in subGroup.routers[groupKey]?.keys ?? <String>[]) {
-          if (targetWareHouse.routers[groupKey] == null) {
-            targetWareHouse.routers[groupKey] = {};
-          }
-          if (subGroup.routers[groupKey] == null) {
-            subGroup.routers[groupKey] = {};
-          }
-          targetWareHouse.routers[groupKey]![pathKey] =
-          subGroup.routers[groupKey]![pathKey]!;
+      for (var bundleValue in subGroup.routers.keys) {
+        if (subGroup.routers[bundleValue] != null) {
+          targetWareHouse.routers[bundleValue] = subGroup.routers[bundleValue]!;
         }
       }
 
-      for (var groupKey in subGroup.providers.keys) {
-        for (var pathKey
-        in (subGroup.providers[groupKey]?.keys ?? <String>[])) {
-          final routerProvider = subGroup.providers[groupKey]![pathKey];
-          if (routerProvider != null) {
-            if (targetWareHouse.providers[groupKey] == null) {
-              targetWareHouse.providers[groupKey] = {};
-            }
-            targetWareHouse.providers[groupKey]![pathKey] = routerProvider;
-          }
+      for (var bundleValue in subGroup.providers.keys) {
+        final routerProvider = subGroup.providers[bundleValue];
+        if (routerProvider != null) {
+          targetWareHouse.providers[bundleValue] = routerProvider;
         }
       }
 
       targetWareHouse.interceptors.addAll(subGroup.interceptors);
-
       targetWareHouse.routerMapBundle.addAll(subGroup.routerMapBundle);
       targetWareHouse.providerBundle.addAll(subGroup.providerBundle);
     }

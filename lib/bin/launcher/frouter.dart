@@ -1,5 +1,6 @@
 import 'package:frouter/bin/core/frouter_logistics_center.dart';
 import 'package:frouter/bin/entity/frouter_router_map.dart';
+import 'package:frouter/bin/entity/frouter_warehouse.dart';
 import 'package:frouter/bin/facade/frouter_post_card.dart';
 
 class FRouter {
@@ -11,8 +12,8 @@ class FRouter {
 
   LogisticsCenter logisticsCenter = LogisticsCenter();
 
-  void init(FRouterRouterMap routerMap) {
-    logisticsCenter.init(routerMap);
+  FRouterWareHouse init(FRouterRouterMap routerMap) {
+    return logisticsCenter.init(routerMap);
   }
 
   void updateBundle(String bundleJson) {
@@ -51,4 +52,8 @@ class FRouter {
 
     return '';
   }
+}
+
+class FRouterStartApp{
+
 }

@@ -22,6 +22,13 @@ final _builders = <_i1.BuilderApplication>[
     appliesBuilders: const [r'frouter:map_builder'],
   ),
   _i1.apply(
+    r'frouter:router_task_builder',
+    [_i2.routerTaskBuilder],
+    _i1.toDependentsOf(r'frouter'),
+    hideOutput: true,
+    appliesBuilders: const [r'frouter:task_builder'],
+  ),
+  _i1.apply(
     r'source_gen:combining_builder',
     [_i3.combiningBuilder],
     _i1.toNoneByDefault(),
@@ -35,6 +42,10 @@ final _builders = <_i1.BuilderApplication>[
   _i1.applyPostProcess(
     r'frouter:map_builder',
     _i2.mapPostProcessBuilder,
+  ),
+  _i1.applyPostProcess(
+    r'frouter:task_builder',
+    _i2.taskPostBuilder,
   ),
 ];
 void main(

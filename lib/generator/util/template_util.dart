@@ -26,8 +26,6 @@ class GeneratorTemplateUtil {
               ? _rootGroupGetMethod(packageGraph, sourceMap)
               : _subGroupGetMethod(packageGraph, buildStep, sourceMap),
 
-          /// todo: 拦截器部分，暂时懒得做了
-          // if(isRoot) _buildLogicCenter(),
         ]);
 
       final List<RouterItemScriptContentEntity> routerSourceList = [];
@@ -240,13 +238,6 @@ class _BuilderHelper {
       }
 
       for (ParameterElement parameter in constructor.parameters) {
-        // String parameterKey = parameter.name;
-        // String parameterType =
-        //     parameter.type.getDisplayString(withNullability: true);
-        // String parameterUrl = parameter
-        //         .type.element2?.enclosingElement3?.source?.uri
-        //         .toString() ??
-        //     '';
 
         if (parameter.metadata.any((element) =>
             element.element?.source?.uri.toString() ==
@@ -269,7 +260,7 @@ class _BuilderHelper {
       Code(
           '\'${'${routerItem.element.source?.uri.toString() ?? ''}:${routerItem.element.displayName}'}\':'),
       Code('('),
-      Code('Map<String,String>? parameters) {'),
+      Code('Map<String,List<String>>? parameters) {'),
       Code('return '),
       refer(
               (routerItem.element as ClassElement)

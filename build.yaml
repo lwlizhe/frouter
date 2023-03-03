@@ -17,9 +17,23 @@ builders:
     auto_apply: dependents #none，dependents，root_package，all_packages
     build_to: cache # source, cache
 
+  router_task_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factories: [ "routerTaskBuilder" ]
+    build_extensions: { ".dart": [ ".task" ] }
+    runs_before: [ ":task_builder" ]
+    applies_builders:
+      - frouter:task_builder
+    auto_apply: dependents #none，dependents，root_package，all_packages
+    build_to: cache # source, cache
+
 post_process_builders:
   map_builder:
     import: "package:frouter/builder/builder.dart"
     builder_factory: mapPostProcessBuilder
+
+  task_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factory: taskPostBuilder
 
 

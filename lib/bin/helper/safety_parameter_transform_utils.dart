@@ -2,29 +2,29 @@ import 'dart:convert';
 
 typedef FRouterTransformProxy = dynamic Function(String parametersString);
 
-T? transform<T extends Object?>(dynamic target,
+T? transform<T extends Object?>(List<dynamic>? target,
     [T? defaultValue, FRouterTransformProxy? proxy]) {
   if (target is T) {
-    return target;
+    return target as T;
   }
 
-  if (target != null) {
+  if (target != null && target.isNotEmpty) {
     try {
-      final String valueString = target.toString();
-      switch (T.runtimeType) {
+      switch (T) {
         case String:
-          return valueString as T;
+          return target.first as T;
         case int:
-          return int.parse(valueString) as T;
+          return int.parse(target.first.toString()) as T;
         case double:
-          return double.parse(valueString) as T;
+          return double.parse(target.first.toString()) as T;
         case bool:
-          return (valueString == '1' || valueString == 'true') as T;
+          return (target.first.toString() == '1' ||
+              target.first.toString() == 'true') as T;
         case List:
         case Map:
-          return json.decode(valueString) as T;
+          return json.decode(target.toString()) as T;
         default:
-          return proxy?.call(valueString) ?? defaultValue;
+          return proxy?.call(target.toString()) ?? defaultValue;
       }
     } catch (e, stackTrace) {
       print('asT<$T> error : $e , stackTrace : $stackTrace');

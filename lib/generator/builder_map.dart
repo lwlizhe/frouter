@@ -138,114 +138,114 @@ class RouterMapPostProcessBuilder extends PostProcessBuilder {
   }
 }
 
-class RouterMapBuilder extends Builder {
-  PackageGraph? packageGraph;
-
-  /// Converts [Future], [Iterable], and [Stream] implementations
-  /// containing [String] to a single [Stream] while ensuring all thrown
-  /// exceptions are forwarded through the return value.
-  Stream<String> normalizeGeneratorOutput(Object? value) {
-    if (value == null) {
-      return const Stream.empty();
-    } else if (value is Future) {
-      return StreamCompleter.fromFuture(value.then(normalizeGeneratorOutput));
-    } else if (value is String) {
-      value = [value];
-    }
-
-    if (value is Iterable) {
-      value = Stream.fromIterable(value);
-    }
-
-    if (value is Stream) {
-      return value.where((e) => e != null).map((e) {
-        if (e is String) {
-          return e.trim();
-        }
-
-        throw _argError(e as Object);
-      }).where((e) => e.isNotEmpty);
-    }
-    throw _argError(value);
-  }
-
-  ArgumentError _argError(Object value) => ArgumentError(
-        'Must be a String or be an Iterable/Stream containing String values. '
-        'Found `${Error.safeToString(value)}` (${value.runtimeType}).',
-      );
-
-  @override
-  // TODO: implement buildExtensions
-  Map<String, List<String>> get buildExtensions => {
-        '.dart': [
-          '.map',
-        ]
-      };
-
-  @override
-  FutureOr<void> build(BuildStep buildStep) async {
-    final currentRouterItemMap = RouterPathGenerator.currentRegisterModuleMap;
-
-    if (packageGraph == null) {
-      packageGraph = await PackageGraph.forThisPackage();
-
-      if (currentRouterItemMap.keys.isNotEmpty) {
-        final registerModuleList = currentRouterItemMap.keys.toList();
-
-        /// todo 在注册组件列表的目录下，生成引用文件
-        // for (String key in registerModuleList) {
-        //   final configList = currentRouterItemMap[key];
-        //   Element element = configList![0] as Element;
-        //   ConstantReader annotation = configList[1] as ConstantReader;
-        //   BuildStep buildStep = configList[2] as BuildStep;
-        //
-        //   print(element);
-        // }
-
-        /// todo 生成路由表；
-
-      }
-
-      // final library = await buildStep.resolver
-      //     .libraryFor(buildStep.inputId, allowSyntaxErrors: false);
-      // final LibraryReader libraryReader = LibraryReader(library);
-      // final typeElementList = libraryReader.annotatedWith(typeChecker);
-      // final environment = IOEnvironment(packageGraph!);
-      //
-      // final assetGraphId = AssetId(packageGraph!.root.name, assetGraphPath);
-      // if (!await environment.reader.canRead(assetGraphId)) {
-      //   return null;
-      // }
-      //
-      // var cachedGraph = AssetGraph.deserialize(
-      //     await environment.reader.readAsBytes(assetGraphId));
-      // _matchingPrimaryInputs('example', 0, cachedGraph, packageGraph!)
-      //     .then((value) {
-      //   print(value);
-      // });
-    }
-
-    final values = <String>{};
-
-    try {
-      final content = StringBuffer();
-      content..writeln('// ignore_for_file: directives_ordering');
-      // ..writeln(
-      //     GeneratorTemplateUtil.getTemplate(packageGraph: packageGraph!));
-
-      await for (var value in normalizeGeneratorOutput(
-          DartFormatter().format(content.toString()))) {
-        assert(value.length == value.trim().length);
-        values.add(value);
-      }
-    } catch (e) {
-      _log.severe('Generated build script could not be parsed.\n'
-          'This is likely caused by a misconfigured builder definition.');
-      throw CannotBuildException();
-    }
-
-    String content = values.join('\n\n');
-
-    return;
-  }
-}
+// class RouterMapBuilder extends Builder {
+//   PackageGraph? packageGraph;
+//
+//   /// Converts [Future], [Iterable], and [Stream] implementations
+//   /// containing [String] to a single [Stream] while ensuring all thrown
+//   /// exceptions are forwarded through the return value.
+//   Stream<String> normalizeGeneratorOutput(Object? value) {
+//     if (value == null) {
+//       return const Stream.empty();
+//     } else if (value is Future) {
+//       return StreamCompleter.fromFuture(value.then(normalizeGeneratorOutput));
+//     } else if (value is String) {
+//       value = [value];
+//     }
+//
+//     if (value is Iterable) {
+//       value = Stream.fromIterable(value);
+//     }
+//
+//     if (value is Stream) {
+//       return value.where((e) => e != null).map((e) {
+//         if (e is String) {
+//           return e.trim();
+//         }
+//
+//         throw _argError(e as Object);
+//       }).where((e) => e.isNotEmpty);
+//     }
+//     throw _argError(value);
+//   }
+//
+//   ArgumentError _argError(Object value) => ArgumentError(
+//         'Must be a String or be an Iterable/Stream containing String values. '
+//         'Found `${Error.safeToString(value)}` (${value.runtimeType}).',
+//       );
+//
+//   @override
+//   // TODO: implement buildExtensions
+//   Map<String, List<String>> get buildExtensions => {
+//         '.dart': [
+//           '.map',
+//         ]
+//       };
+//
+//   @override
+//   FutureOr<void> build(BuildStep buildStep) async {
+//     final currentRouterItemMap = RouterPathGenerator.currentRegisterModuleMap;
+//
+//     if (packageGraph == null) {
+//       packageGraph = await PackageGraph.forThisPackage();
+//
+//       if (currentRouterItemMap.keys.isNotEmpty) {
+//         final registerModuleList = currentRouterItemMap.keys.toList();
+//
+//         /// todo 在注册组件列表的目录下，生成引用文件
+//         // for (String key in registerModuleList) {
+//         //   final configList = currentRouterItemMap[key];
+//         //   Element element = configList![0] as Element;
+//         //   ConstantReader annotation = configList[1] as ConstantReader;
+//         //   BuildStep buildStep = configList[2] as BuildStep;
+//         //
+//         //   print(element);
+//         // }
+//
+//         /// todo 生成路由表；
+//
+//       }
+//
+//       // final library = await buildStep.resolver
+//       //     .libraryFor(buildStep.inputId, allowSyntaxErrors: false);
+//       // final LibraryReader libraryReader = LibraryReader(library);
+//       // final typeElementList = libraryReader.annotatedWith(typeChecker);
+//       // final environment = IOEnvironment(packageGraph!);
+//       //
+//       // final assetGraphId = AssetId(packageGraph!.root.name, assetGraphPath);
+//       // if (!await environment.reader.canRead(assetGraphId)) {
+//       //   return null;
+//       // }
+//       //
+//       // var cachedGraph = AssetGraph.deserialize(
+//       //     await environment.reader.readAsBytes(assetGraphId));
+//       // _matchingPrimaryInputs('example', 0, cachedGraph, packageGraph!)
+//       //     .then((value) {
+//       //   print(value);
+//       // });
+//     }
+//
+//     final values = <String>{};
+//
+//     try {
+//       final content = StringBuffer();
+//       content..writeln('// ignore_for_file: directives_ordering');
+//       // ..writeln(
+//       //     GeneratorTemplateUtil.getTemplate(packageGraph: packageGraph!));
+//
+//       await for (var value in normalizeGeneratorOutput(
+//           DartFormatter().format(content.toString()))) {
+//         assert(value.length == value.trim().length);
+//         values.add(value);
+//       }
+//     } catch (e) {
+//       _log.severe('Generated build script could not be parsed.\n'
+//           'This is likely caused by a misconfigured builder definition.');
+//       throw CannotBuildException();
+//     }
+//
+//     String content = values.join('\n\n');
+//
+//     return;
+//   }
+// }

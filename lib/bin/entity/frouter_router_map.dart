@@ -8,12 +8,10 @@ class FRouterRouterMap {
   List<FRouterRouterMap> subModule = [];
 
   Map<String, FRouterWidgetBuilder> routerMap = {};
-  Map<String,String> routerMapBundle = {};
+  Map<String, String> routerMapBundle = {};
 
   Map<String, FRouterProviderBuilder> providerMap = {};
-  Map<String,String> providerBundle = {};
-
-  List<FRouterIntercept> interceptList = [];
+  Map<String, String> providerBundle = {};
 
   FRouterRouterMap({
     this.hostRouterGroup = '',
@@ -21,7 +19,5 @@ class FRouterRouterMap {
     this.subModule = const [],
     this.routerMap = const {},
     this.providerMap = const {},
-    this.interceptList = const [],
   });
-
 }

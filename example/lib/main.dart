@@ -1,4 +1,12 @@
+import 'package:example/example_route.dart';
+import 'package:example/page/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:frouter/frouter.dart';
+import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
+import 'package:oktoast/oktoast.dart';
+
+import 'example_task.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,6 +18,53 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final wareHouse = FRouter().init(FRouterMap());
+    final task = FRouterTask().init(FRouterFlowTask());
+
+    final List<GetPage> getRouter = [
+      ...wareHouse.routerMapBundle.keys.map((e) => GetPage(
+          name: '/$e',
+          page: () {
+            String uri = (Uri.parse(e).replace(queryParameters: {
+              ...Get.parameters,
+              ...Get.arguments ?? {},
+              ...{'tag': e.toString()}
+            })).toString();
+            return FRouter().build(uri).navigation() as Widget;
+          }))
+    ];
+
+    final GoRouter goRouter = GoRouter(
+      routes: <RouteBase>[
+        ...wareHouse.routerMapBundle.keys
+            .map((e) => GoRoute(
+                path: '/$e',
+                builder: (BuildContext context, GoRouterState state) {
+                  String fullPath = (Uri.parse(e).replace(queryParameters: {
+                    ...Get.parameters,
+                    ...Get.arguments ?? {}
+                  })).toString();
+                  return FRouter().build(fullPath).navigation() as Widget;
+                }))
+            .toList(),
+      ],
+    );
+
+    /// 使用get
+    return OKToast(
+      child: GetMaterialApp(
+        title: 'Flutter Demo',
+        home: const HomePage(),
+        getPages: getRouter,
+      ),
+    );
+
+    /// 使用go_router
+    return MaterialApp.router(
+      routerConfig: goRouter,
+    );
+
+    /// 使用 Navigator 1.0
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -25,6 +80,14 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      onGenerateRoute: (RouteSettings settings) {
+        return MaterialPageRoute<dynamic>(
+          settings: settings,
+          builder: (BuildContext _) {
+            return FRouter().build(settings.name ?? '').navigation() as Widget;
+          },
+        );
+      },
     );
   }
 }

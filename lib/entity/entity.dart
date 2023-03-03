@@ -17,3 +17,12 @@ class RouterHostContentEntity {
 
   RouterHostContentEntity(this.element, this.annotation, this.buildStep);
 }
+
+class TaskContentEntity{
+
+  Element element;
+  ConstantReader annotation;
+  BuildStep buildStep;
+
+  TaskContentEntity(this.element, this.annotation, this.buildStep);
+}

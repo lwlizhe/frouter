@@ -14,8 +14,9 @@ class LogisticsCenter {
     ),
   );
 
-  Future init(FRouterRouterMap routerMap) async {
+  FRouterWareHouse init(FRouterRouterMap routerMap) {
     routerWareHouse = FRouterWareHouse.fromRouterMap(routerMap);
+    return routerWareHouse;
   }
 
   void updateBundle(String routerJsonString) async {
@@ -24,8 +25,7 @@ class LogisticsCenter {
 
   FRouterPostCard getTarget(
       FRouterPostCard targetPostCard, FRouterWareHouse wareHouse) {
-    Uri targetUri = Uri.parse(targetPostCard.path);
-    final findRouter = wareHouse.routers[targetPostCard.group]?[targetUri.path];
+    final findRouter = wareHouse.routers[wareHouse.routerMapBundle[targetPostCard.uri?.path]];
     if (findRouter != null) {
       targetPostCard.widgetBuilder = findRouter.widgetBuilder;
       targetPostCard.type = findRouter.type;
@@ -33,8 +33,7 @@ class LogisticsCenter {
       return targetPostCard;
     }
 
-    final findProviderBuilder =
-        wareHouse.providers[targetPostCard.group]?[targetPostCard.path];
+    final findProviderBuilder = wareHouse.providers[wareHouse.providerBundle[targetPostCard.path]];
 
     if (findProviderBuilder != null) {
       targetPostCard.providerBuilder = findProviderBuilder;
@@ -75,11 +74,13 @@ class LogisticsCenter {
     final targetPostCard = getTarget(postCard, routerWareHouse);
     switch (targetPostCard.type) {
       case FRouterType.widget:
-        return postCard.widgetBuilder
-            ?.call(postCard.uri?.queryParameters);
+        return postCard.widgetBuilder?.call({
+          ...(postCard.uri?.queryParametersAll ?? {}),
+        });
       case FRouterType.provider:
-        return postCard.providerBuilder
-            ?.call(postCard.uri?.queryParameters);
+        return postCard.providerBuilder?.call({
+          ...(postCard.uri?.queryParametersAll ?? {}),
+        });
       case FRouterType.unKnow:
       default:
         return emptyWidget;
