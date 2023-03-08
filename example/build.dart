@@ -13,6 +13,7 @@ final _builders = <_i1.BuilderApplication>[
     [_i2.pathBuilder],
     _i1.toDependentsOf(r'frouter'),
     hideOutput: true,
+    appliesBuilders: const [r'frouter:export_builder'],
   ),
   _i1.apply(
     r'frouter:router_register_builder',
@@ -40,6 +41,10 @@ final _builders = <_i1.BuilderApplication>[
     _i3.partCleanup,
   ),
   _i1.applyPostProcess(
+    r'frouter:export_builder',
+    _i2.exportFileBuilder,
+  ),
+  _i1.applyPostProcess(
     r'frouter:map_builder',
     _i2.mapPostProcessBuilder,
   ),
@@ -49,9 +54,9 @@ final _builders = <_i1.BuilderApplication>[
   ),
 ];
 void main(
-  List<String> args, [
-  _i4.SendPort? sendPort,
-]) async {
+    List<String> args, [
+      _i4.SendPort? sendPort,
+    ]) async {
   var result = await _i5.run(
     args,
     _builders,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frouter/frouter.dart';
 import 'package:get/get.dart';
+import 'package:oktoast/oktoast.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -26,15 +27,27 @@ class _HomePageState extends State<HomePage> {
               height: 50,
             ),
             TextButton(
-                onPressed: () {
-                  Get.toNamed('/user/user_info', parameters: {
-                    'name': '法外狂徒张三',
-                    'userTokenA': '终身编号：9527',
-                  });
-                  // Navigator.of(context).pushNamed(
-                  //     'moduleA/testB?requiredArgument=testRequiredArgument&argument=testArgument&intArgument=1');
-                },
-                child: Text('跳转到 moduleA 中的UserInfoPage')),
+              onPressed: () {
+                Get.toNamed('/user/user_info', parameters: {
+                  'name': '法外狂徒张三',
+                  'userTokenA': '终身编号：9527',
+                }, arguments: {
+                  'contractList': <String>[
+                    '亚洲舞王——尼古拉赵四',
+                    '暗夜精灵——宋小宝',
+                    '自由之光——香蕉君',
+                    '暗黑佟大为——Van君',
+                    '新日暮里的森之妖精——比利海灵顿',
+                  ],
+                });
+                // Navigator.of(context).pushNamed(
+                //     'moduleA/testB?requiredArgument=testRequiredArgument&argument=testArgument&intArgument=1');
+              },
+              child: Text(
+                '跳转到 moduleA 中的UserInfoPage \n (带参跳转、List类型、以及自动组装自定义实体类)',
+                textAlign: TextAlign.center,
+              ),
+            ),
             TextButton(
                 onPressed: () {
                   Get.toNamed('/post/post_info', arguments: {
@@ -46,7 +59,10 @@ class _HomePageState extends State<HomePage> {
                   // Navigator.of(context).pushNamed(
                   //     'moduleA/testB?requiredArgument=testRequiredArgument&argument=testArgument&intArgument=1');
                 },
-                child: Text('跳转到 moduleB 中的PostInfoPage')),
+                child: Text(
+                  '跳转到 moduleB 中的PostInfoPage \n (最最基本的路由功能)',
+                  textAlign: TextAlign.center,
+                )),
             TextButton(
                 onPressed: () {
                   Get.toNamed('/app/live');
@@ -91,7 +107,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: 50,
             ),
-            Text('通过纯手动输入的方式实现路由跳转'),
+            Text('通过纯手动输入的方式实现路由跳转\n（模拟从web的JS方法、拦截的web跳转路由等一系列莫名其妙的路由跳转请求）',textAlign: TextAlign.center,),
             TextField(
               controller: controller,
             ),
@@ -108,6 +124,7 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 FRouter().updateBundle(
                     '{"post/post_info":"package:base/common/common_web_page.dart:CommonWebPage"}');
+                showToast('替换成功,现在moduleB中的PostInfoPage已经被替换成CommonWebPage并打开bilibili');
               },
               child: Text('替换更新路由表'),
             ),

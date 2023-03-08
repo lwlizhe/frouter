@@ -1,7 +1,8 @@
+import 'package:frouter/generator/builder_export.dart';
 import 'package:frouter/generator/builder_map.dart';
 import 'package:frouter/generator/builder_task.dart';
-import 'package:frouter/generator/generator_path.dart';
-import 'package:frouter/generator/generator_router.dart';
+import 'package:frouter/generator/generator_router_path.dart';
+import 'package:frouter/generator/generator_router_map.dart';
 import 'package:frouter/generator/generator_task.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:build/build.dart';
@@ -28,4 +29,8 @@ PostProcessBuilder mapPostProcessBuilder(BuilderOptions options) =>
 Builder routerTaskBuilder(BuilderOptions options) =>
     LibraryBuilder(TaskGenerator(), generatedExtension: ".task");
 
-PostProcessBuilder taskPostBuilder(BuilderOptions options) => RouterTaskPostProcessBuilder();
+PostProcessBuilder taskPostBuilder(BuilderOptions options) =>
+    RouterTaskPostProcessBuilder();
+
+PostProcessBuilder exportFileBuilder(BuilderOptions options) =>
+    RouterExportPostProcessBuilder();

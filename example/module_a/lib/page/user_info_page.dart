@@ -10,6 +10,7 @@ import 'package:module_a/entity/user_info.dart';
 class UserInfoPage extends StatelessWidget {
   final String userToken;
   final UserInfo userInfo;
+  final List<String> contractList;
 
   @FlowTaskInject(taskIdentifier: 'moduleA_test')
   static Function test = () async {
@@ -23,11 +24,12 @@ class UserInfoPage extends StatelessWidget {
 
   @FlowTaskInject(
       taskIdentifier: 'moduleA_init',
-      dependOn: 'base_init',
+      dependOn: 'base_init,moduleC_init',
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleAInit = () async {
-    Get.snackbar('ModuleA Module', 'ModuleA Module Init');
+    Get.snackbar('ModuleA Module', 'ModuleA Module Init',
+        duration: const Duration(seconds: 1));
   };
 
   @FlowTaskInject(
@@ -36,12 +38,14 @@ class UserInfoPage extends StatelessWidget {
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleAPermission = () async {
-    Get.snackbar('ModuleA Module', 'ModuleA Module Permission');
+    Get.snackbar('ModuleA Module', 'ModuleA Module Permission',
+        duration: const Duration(seconds: 1));
   };
 
   const UserInfoPage(
       {@requestBody required this.userInfo,
-      @RequestParam(parameterName: 'userTokenA') required this.userToken})
+      @RequestParam(parameterName: 'userTokenA') required this.userToken,
+      this.contractList = const []})
       : super(key: null);
 
   @override
@@ -53,7 +57,7 @@ class UserInfoPage extends StatelessWidget {
       body: Container(
         alignment: AlignmentDirectional.center,
         child: Text(
-          'moudule A 中假装的用户信息页面\n\n\n userName 为 ${userInfo.name} \n userToken 为 $userToken \n\n\n 传递的参数为 userInfo : $userInfo , userToken : $userToken',
+          'moudule A 中假装的用户信息页面\n\n\n userName 为 ${userInfo.name} \n userToken 为 $userToken \n\n\n 传递的参数为 userInfo是个实体类 : $userInfo ， 其中name为${userInfo.name} ,\n userToken : $userToken , \n contractList : $contractList',
           textAlign: TextAlign.center,
         ),
       ),

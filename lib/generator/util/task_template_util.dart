@@ -7,7 +7,7 @@ class GeneratorTaskUtil {
   static StringSink getTaskContent(
       {required PackageGraph packageGraph,
       required PostProcessBuildStep buildStep,
-      required Map<String, List<TaskContentEntity>> sourceMap}) {
+      required Map<String, List<BuildScriptItemContentEntity>> sourceMap}) {
     bool isRoot = buildStep.inputId.package == packageGraph.root.name;
 
     final routerMapClass = Class((b) {
@@ -30,7 +30,7 @@ class GeneratorTaskUtil {
       bool isRoot,
       PackageGraph packageGraph,
       PostProcessBuildStep buildStep,
-      Map<String, List<TaskContentEntity>> sourceMap) {
+      Map<String, List<BuildScriptItemContentEntity>> sourceMap) {
     return [
       Method((methodBuilder) {
         methodBuilder
@@ -66,7 +66,7 @@ class GeneratorTaskUtil {
       bool isRoot,
       PackageGraph packageGraph,
       PostProcessBuildStep buildStep,
-      Map<String, List<TaskContentEntity>> sourceMap) {
+      Map<String, List<BuildScriptItemContentEntity>> sourceMap) {
     List<PackageNode> sourceModuleList = packageGraph
             .allPackages[buildStep.inputId.package]?.dependencies
             .where((element) => sourceMap.containsKey(element.name))
@@ -91,20 +91,14 @@ class GeneratorTaskUtil {
             ...sourceModuleList.map((e) => refer('FRouterFlowTask(),',
                     'package:${e.name}/${e.name}_task.dart')
                 .code),
-            // ...sourceList.expand((element) => [
-            //       Code(
-            //           '\'${(element.annotation.objectValue.getField('taskIdentifier')?.toStringValue() ?? '')}\':'),
-            //       Code(
-            //           '\'${'${element.element.source?.uri.toString() ?? ''}:${element.element.displayName}'}\','),
-            //     ]),
             const Code('];'),
           ]);
         });
     });
   }
 
-  static Method buildTaskMapMethod(List<TaskContentEntity> sourceList) {
-    Code buildInitTaskCode(TaskContentEntity entity) {
+  static Method buildTaskMapMethod(List<BuildScriptItemContentEntity> sourceList) {
+    Code buildInitTaskCode(BuildScriptItemContentEntity entity) {
       return refer('FRouterInitTaskEntity',
               'package:frouter/bin/entity/frouter_task_meta.dart')
           .newInstance([], {
@@ -129,7 +123,7 @@ class GeneratorTaskUtil {
       }, []).code;
     }
 
-    Code buildNormalTaskCode(TaskContentEntity entity) {
+    Code buildNormalTaskCode(BuildScriptItemContentEntity entity) {
       return refer('FRouterNormalTaskEntity',
               'package:frouter/bin/entity/frouter_task_meta.dart')
           .newInstance([], {

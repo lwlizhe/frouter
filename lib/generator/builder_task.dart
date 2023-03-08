@@ -3,18 +3,18 @@ import 'dart:io';
 import 'package:build/build.dart';
 import 'package:build_runner_core/build_runner_core.dart';
 import 'package:frouter/entity/entity.dart';
-import 'package:frouter/generator/generator_path.dart';
+import 'package:frouter/generator/generator_router_path.dart';
 import 'package:frouter/generator/generator_task.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:frouter/generator/util/task_template_util.dart';
 import 'package:path/path.dart' as path;
 
 class RouterTaskPostProcessBuilder extends PostProcessBuilder {
-  static final Map<String, List<TaskContentEntity>> _taskMap = {};
+  static final Map<String, List<BuildScriptItemContentEntity>> _taskMap = {};
 
   @override
   FutureOr<void> build(PostProcessBuildStep buildStep) async {
-    for (TaskContentEntity entity in TaskGenerator.registerTaskMap.values) {
+    for (BuildScriptItemContentEntity entity in TaskGenerator.registerTaskMap.values) {
       final currentPackage = entity.buildStep.inputId.package;
 
       if (!_taskMap.containsKey(currentPackage)) {
@@ -45,14 +45,16 @@ class RouterTaskPostProcessBuilder extends PostProcessBuilder {
       var package = RouterPathGenerator.packageGraph![targetAsset.package];
       final targetFile = File(path.join(package!.path, targetAsset.path));
 
-      if (!targetFile.existsSync()) {
-        _buildTaskFile(targetAsset, buildStep, _taskMap);
+      if (targetFile.existsSync()) {
+        targetFile.deleteSync();
       }
+
+      _buildTaskFile(targetAsset, buildStep, _taskMap);
     }
   }
 
   void _buildTaskFile(AssetId targetAsset, PostProcessBuildStep buildStep,
-      Map<String, List<TaskContentEntity>> taskMap) {
+      Map<String, List<BuildScriptItemContentEntity>> taskMap) {
     FileBasedAssetWriter writer =
         FileBasedAssetWriter(RouterPathGenerator.packageGraph!);
 

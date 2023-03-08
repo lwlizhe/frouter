@@ -11,13 +11,13 @@ class CartPage extends StatelessWidget {
 
   @FlowTaskInject(
       taskIdentifier: 'moduleC_init',
-      dependOn: 'base_init,moduleA_init,moduleB_init',
+      dependOn: 'base_init',
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleCInit = () async {
-    Get.snackbar('ModuleB Module', 'ModuleC Module Init');
+    Get.snackbar('ModuleC Module', 'ModuleC Module Init',
+        duration: const Duration(seconds: 1));
   };
-
 
   @FlowTaskInject(
       taskIdentifier: 'moduleC_permission',
@@ -25,7 +25,8 @@ class CartPage extends StatelessWidget {
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleCPermission = () async {
-    Get.snackbar('ModuleC Module', 'ModuleC Module Permission');
+    Get.snackbar('ModuleC Module', 'ModuleC Module Permission',
+        duration: const Duration(seconds: 1));
   };
 
   @override

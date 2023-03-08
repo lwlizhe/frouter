@@ -4,6 +4,8 @@ builders:
     builder_factories: [ "pathBuilder" ]
     build_extensions: { ".dart": [ ".g.part" ] }
     runs_before: [ ":map_builder" ]
+    applies_builders:
+      - frouter:export_builder
     auto_apply: dependents #none，dependents，root_package，all_packages
     build_to: cache # source, cache
 
@@ -28,6 +30,11 @@ builders:
     build_to: cache # source, cache
 
 post_process_builders:
+
+  export_builder:
+    import: "package:frouter/builder/builder.dart"
+    builder_factory: exportFileBuilder
+
   map_builder:
     import: "package:frouter/builder/builder.dart"
     builder_factory: mapPostProcessBuilder
@@ -35,5 +42,6 @@ post_process_builders:
   task_builder:
     import: "package:frouter/builder/builder.dart"
     builder_factory: taskPostBuilder
+
 
 

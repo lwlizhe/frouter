@@ -20,11 +20,12 @@ class PostInfoPage extends StatelessWidget {
 
   @FlowTaskInject(
       taskIdentifier: 'moduleB_init',
-      dependOn: 'base_init,moduleA_init',
+      dependOn: 'base_init,moduleA_init,moduleC_init',
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleBInit = () async {
-    Get.snackbar('ModuleB Module', 'ModuleB Module Init');
+    Get.snackbar('ModuleB Module', 'ModuleB Module Init',
+        duration: const Duration(seconds: 1));
   };
 
 
@@ -34,7 +35,8 @@ class PostInfoPage extends StatelessWidget {
       isInitTask: true,
       isNeedAwait: true)
   static Function moduleBPermission = () async {
-    Get.snackbar('ModuleB Module', 'ModuleB Module Permission');
+    Get.snackbar('ModuleB Module', 'ModuleB Module Permission',
+        duration: const Duration(seconds: 1));
   };
 
   const PostInfoPage(this.postTitleList, {Key? key}) : super(key: key);
@@ -47,8 +49,8 @@ class PostInfoPage extends StatelessWidget {
       ),
       body: Container(
         alignment: AlignmentDirectional.center,
-        child: Text(
-            'moudule B 中假装的帖子详情页面 \n\n\n postTitleList 为 $postTitleList',
+        child: const Text(
+            'moudule B 中假装的帖子详情页面',
             textAlign: TextAlign.center),
       ),
     );

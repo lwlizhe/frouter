@@ -6,7 +6,7 @@ import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 class TaskGenerator extends GeneratorForAnnotation<FlowTask> {
-  static Map<String, TaskContentEntity> registerTaskMap = {};
+  static Map<String, BuildScriptItemContentEntity> registerTaskMap = {};
 
   @override
   generateForAnnotatedElement(
@@ -19,7 +19,7 @@ class TaskGenerator extends GeneratorForAnnotation<FlowTask> {
                   .annotationsOfExact(fieldElement)
                   .toList();
           for (var element in objectList) {
-            final currentEntity = TaskContentEntity(
+            final currentEntity = BuildScriptItemContentEntity(
                 fieldElement, ConstantReader(element), buildStep);
             registerTaskMap[ConstantReader(element)
                     .objectValue

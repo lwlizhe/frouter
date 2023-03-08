@@ -9,7 +9,8 @@ class Base {
       isInitTask: true,
       isNeedAwait: true)
   static Function baseInit = () async {
-    Get.snackbar('Base Module', 'Base Module Init');
+    Get.snackbar('Base Module', 'Base Module Init',
+        duration: const Duration(seconds: 1));
   };
 
   @FlowTaskInject(
@@ -18,6 +19,7 @@ class Base {
       isInitTask: true,
       isNeedAwait: true)
   static Function basePermission = () async {
-    Get.snackbar('Base Module', 'Base Module Permission');
+    Get.snackbar('Base Module', 'Base Module Permission',
+        duration: const Duration(seconds: 1));
   };
 }

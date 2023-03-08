@@ -7,7 +7,7 @@ import 'package:frouter/entity/entity.dart';
 import 'package:source_gen/source_gen.dart';
 
 class RouterPathGenerator extends GeneratorForAnnotation<RouterPath> {
-  static Map<String, List<RouterItemScriptContentEntity>>
+  static Map<String, List<BuildScriptItemContentEntity>>
       currentRegisterModuleMap = {};
 
   static PackageGraph? packageGraph;
@@ -15,9 +15,7 @@ class RouterPathGenerator extends GeneratorForAnnotation<RouterPath> {
   @override
   generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
-    if (packageGraph == null) {
-      packageGraph = await PackageGraph.forThisPackage();
-    }
+    packageGraph ??= await PackageGraph.forThisPackage();
     checkRouterMap(element, annotation, buildStep);
   }
 
@@ -33,7 +31,7 @@ class RouterPathGenerator extends GeneratorForAnnotation<RouterPath> {
     final currentList = (currentRegisterModuleMap[fileModule] ??= []);
 
     currentList
-        .add(RouterItemScriptContentEntity(element, annotation, buildStep));
+        .add(BuildScriptItemContentEntity(element, annotation, buildStep));
   }
 
 

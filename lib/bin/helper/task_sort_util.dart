@@ -43,7 +43,7 @@ class FRouterTaskHelper {
         if (sourceMap.containsKey(dependName)) {
           final dependMeta = entityToGraph(sourceMap[dependName]!);
           targetMeta.taskDependOnList.add(dependMeta);
-          dependMeta.taskRelyOnList.add(targetMeta);
+          dependMeta.taskQuoteByList.add(targetMeta);
         }
       }
 
@@ -81,7 +81,7 @@ class FRouterTaskHelper {
       FRouterInitTaskEntity taskMeta = zeroOutTaskQueue.removeFirst();
       result.add(taskMeta);
 
-      for (FRouterInitTaskEntity relyMeta in taskMeta.taskRelyOnList) {
+      for (FRouterInitTaskEntity relyMeta in taskMeta.taskQuoteByList) {
         relyMeta.taskDependOnList.remove(taskMeta);
         if (relyMeta.taskDependOnList.isEmpty) {
           zeroOutTaskQueue.addLast(relyMeta);

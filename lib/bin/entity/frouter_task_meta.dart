@@ -54,7 +54,7 @@ class FRouterInitTaskEntity extends FRouterTaskInjectEntity {
   String deepOnString = '';
 
   List<FRouterInitTaskEntity> taskDependOnList = [];
-  List<FRouterInitTaskEntity> taskRelyOnList = [];
+  List<FRouterInitTaskEntity> taskQuoteByList = [];
 
   FRouterInitTaskEntity({
     required Function taskFunction,
@@ -62,7 +62,7 @@ class FRouterInitTaskEntity extends FRouterTaskInjectEntity {
     required this.deepOnString,
     bool isNeedAwait = false,
     List<FRouterInitTaskEntity> taskDependOnList = const [],
-    List<FRouterInitTaskEntity> taskRelyOnList = const [],
+    List<FRouterInitTaskEntity> taskQuoteByList = const [],
     String? description,
     String? tag,
   }) : super(
@@ -73,10 +73,10 @@ class FRouterInitTaskEntity extends FRouterTaskInjectEntity {
           tag: tag,
         ) {
     this.taskDependOnList = List.from(taskDependOnList);
-    this.taskRelyOnList = List.from(taskRelyOnList);
+    this.taskQuoteByList = List.from(taskQuoteByList);
   }
 
-  int get taskInCount => taskRelyOnList.length;
+  int get taskInCount => taskQuoteByList.length;
 
   @override
   FRouterInitTaskEntity deepCopy() {
@@ -88,6 +88,6 @@ class FRouterInitTaskEntity extends FRouterTaskInjectEntity {
       deepOnString: '',
     )
       ..taskDependOnList = List.from(taskDependOnList.map((e) => e.deepCopy()))
-      ..taskRelyOnList = List.from(taskRelyOnList.map((e) => e.deepCopy()));
+      ..taskQuoteByList = List.from(taskQuoteByList.map((e) => e.deepCopy()));
   }
 }

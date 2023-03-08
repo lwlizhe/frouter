@@ -8,7 +8,7 @@ class GeneratorTemplateUtil {
   static StringSink getTemplate(
       {required PackageGraph packageGraph,
       required PostProcessBuildStep buildStep,
-      required Map<String, List<RouterItemScriptContentEntity>> sourceMap}) {
+      required Map<String, List<BuildScriptItemContentEntity>> sourceMap}) {
     bool isRoot = buildStep.inputId.package == packageGraph.root.name;
 
     final routerMapClass = Class((b) {
@@ -21,15 +21,13 @@ class GeneratorTemplateUtil {
               'hostRouterGroup', packageGraph.root.name),
           _buildWareHouseGroupInfoMethod(
               'currentRouterGroup', buildStep.inputId.package),
-
           isRoot
               ? _rootGroupGetMethod(packageGraph, sourceMap)
               : _subGroupGetMethod(packageGraph, buildStep, sourceMap),
-
         ]);
 
-      final List<RouterItemScriptContentEntity> routerSourceList = [];
-      final List<RouterItemScriptContentEntity> providerSourceList = [];
+      final List<BuildScriptItemContentEntity> routerSourceList = [];
+      final List<BuildScriptItemContentEntity> providerSourceList = [];
 
       for (var routerItem in (sourceMap[buildStep.inputId.package] ?? [])) {
         if (routerItem.element is ClassElement) {
@@ -55,9 +53,10 @@ class GeneratorTemplateUtil {
       b.methods
           .add(_RouterBuilder.buildRouterMapBundleMethod(routerSourceList));
 
-      b.methods.add(_ProviderBuilder.buildProviderMapMethod(providerSourceList));
       b.methods
-          .add(_ProviderBuilder.buildProviderMapBundleMethod(providerSourceList));
+          .add(_ProviderBuilder.buildProviderMapMethod(providerSourceList));
+      b.methods.add(
+          _ProviderBuilder.buildProviderMapBundleMethod(providerSourceList));
     });
 
     final library = Library((b) => b.body.add(routerMapClass));
@@ -68,7 +67,7 @@ class GeneratorTemplateUtil {
   }
 
   static Method _rootGroupGetMethod(PackageGraph packageGraph,
-          Map<String, List<RouterItemScriptContentEntity>> sourceMap) =>
+          Map<String, List<BuildScriptItemContentEntity>> sourceMap) =>
       Method((methodBuilder) {
         methodBuilder
           ..name = 'subModule'
@@ -99,7 +98,7 @@ class GeneratorTemplateUtil {
   static Method _subGroupGetMethod(
           PackageGraph packageGraph,
           PostProcessBuildStep currentBuildStep,
-          Map<String, List<RouterItemScriptContentEntity>> sourceMap) =>
+          Map<String, List<BuildScriptItemContentEntity>> sourceMap) =>
       Method((methodBuilder) {
         methodBuilder
           ..name = 'subModule'
@@ -148,112 +147,109 @@ class GeneratorTemplateUtil {
         });
     });
   }
-
 }
 
 class _BuilderHelper {
-  static List<Code> _buildParameterCodeList(
-      RouterItemScriptContentEntity routerItem) {
-    // buildParameterString
 
-    List<Code> buildParameterCodeList(ConstructorElement constructor) {
-      List<Code> codeList = [];
+  static List<Code> _buildElementConstructorParameterCodeList(ConstructorElement constructor) {
+    List<Code> codeList = [];
 
-      List<Code> buildNormalCodeList(ParameterElement parameter) {
-        List<Code> result = [];
-        String parameterKey = parameter.name;
-        String parameterName = parameter.name;
-        String parameterType = parameter.type.element2?.name ?? '';
-        String parameterTypeWithNullable =
-            parameter.type.getDisplayString(withNullability: true);
-        String parameterUrl = parameter
-                .type.element2?.enclosingElement3?.source?.uri
-                .toString() ??
-            '';
-        final requestParameterList = parameter.metadata.where((element) =>
-            element.element?.source?.uri.toString() ==
-                'package:frouter/annotation/request/request_annotation.dart' &&
-            element.element?.displayName == 'RequestParam');
-        if (requestParameterList.isNotEmpty) {
-          parameterName = requestParameterList.first
-                  .computeConstantValue()
-                  ?.getField('parameterName')
-                  ?.toStringValue() ??
-              parameterName;
-        }
-
-        Code parameterReferCode = refer(parameterTypeWithNullable).code;
-
-        if (parameterType != "String" &&
-            parameterType != "int" &&
-            parameterType != "double" &&
-            parameterType != "bool" &&
-            parameterType != "List" &&
-            parameterType != "Map" &&
-            parameterType != "dynamic") {
-          parameterReferCode =
-              refer(parameterTypeWithNullable, parameterUrl).code;
-        }
-
-        List<Code> normalCodeBuilderList = [
-          refer('transform<',
-                  'package:frouter/bin/helper/safety_parameter_transform_utils.dart')
-              .code,
-          parameterReferCode,
-          Code('>(parameters?[\'$parameterName\'])'),
-          const Code(' as '),
-          parameterReferCode,
-          const Code(',')
-        ];
-
-        if (parameter.isRequiredPositional) {
-          result.addAll(normalCodeBuilderList);
-        } else if (parameter.isNamed) {
-          result.add(Code('$parameterKey:'));
-          result.addAll(normalCodeBuilderList);
-        }
-
-        return result;
+    List<Code> buildNormalCodeList(ParameterElement parameter) {
+      List<Code> result = [];
+      String parameterKey = parameter.name;
+      String parameterName = parameter.name;
+      String parameterType = parameter.type.element2?.name ?? '';
+      String parameterTypeWithNullable =
+          parameter.type.getDisplayString(withNullability: true);
+      String parameterUrl =
+          parameter.type.element2?.enclosingElement3?.source?.uri.toString() ??
+              '';
+      final requestParameterList = parameter.metadata.where((element) =>
+          element.element?.source?.uri.toString() ==
+              'package:frouter/annotation/request/request_annotation.dart' &&
+          element.element?.displayName == 'RequestParam');
+      if (requestParameterList.isNotEmpty) {
+        parameterName = requestParameterList.first
+                .computeConstantValue()
+                ?.getField('parameterName')
+                ?.toStringValue() ??
+            parameterName;
       }
 
-      List<Code> buildRequestBodyCodeList(ParameterElement parameter) {
-        List<Code> result = [];
-        String parameterType =
-            parameter.type.getDisplayString(withNullability: false);
-        String parameterUrl = parameter
-                .type.element2?.enclosingElement3?.source?.uri
-                .toString() ??
-            '';
-        ConstructorElement? requestBodyConstructor =
-            (parameter.type.element2 as ClassElement?)?.constructors.first;
+      Code parameterReferCode = refer(parameterTypeWithNullable).code;
 
-        result.add(refer(parameterType, parameterUrl).code);
-        result.add(Code('('));
-        result.addAll(requestBodyConstructor?.parameters
-                .expand((element) => buildNormalCodeList(element)) ??
-            []);
-        result.add(Code('),'));
-
-        return result;
+      if (parameterType != "String" &&
+          parameterType != "int" &&
+          parameterType != "double" &&
+          parameterType != "bool" &&
+          parameterType != "List" &&
+          parameterType != "Map" &&
+          parameterType != "dynamic") {
+        parameterReferCode =
+            refer(parameterTypeWithNullable, parameterUrl).code;
       }
 
-      for (ParameterElement parameter in constructor.parameters) {
+      List<Code> normalCodeBuilderList = [
+        refer('transform<',
+                'package:frouter/bin/helper/safety_parameter_transform_utils.dart')
+            .code,
+        parameterReferCode,
+        Code('>(parameters?[\'$parameterName\'])'),
+        const Code(' as '),
+        parameterReferCode,
+        const Code(',')
+      ];
 
-        if (parameter.metadata.any((element) =>
-            element.element?.source?.uri.toString() ==
-                'package:frouter/annotation/request/request_annotation.dart' &&
-            element.element?.name == 'requestBody')) {
-          if (parameter.isNamed) {
-            codeList.add(Code('${parameter.name}:'));
-          }
-          codeList.addAll(buildRequestBodyCodeList(parameter));
-        } else {
-          codeList.addAll(buildNormalCodeList(parameter));
-        }
+      if (parameter.isRequiredPositional) {
+        result.addAll(normalCodeBuilderList);
+      } else if (parameter.isNamed) {
+        result.add(Code('$parameterKey:'));
+        result.addAll(normalCodeBuilderList);
       }
 
-      return codeList;
+      return result;
     }
+
+    List<Code> buildRequestBodyCodeList(ParameterElement parameter) {
+      List<Code> result = [];
+      String parameterType =
+          parameter.type.getDisplayString(withNullability: false);
+      String parameterUrl =
+          parameter.type.element2?.enclosingElement3?.source?.uri.toString() ??
+              '';
+      ConstructorElement? requestBodyConstructor =
+          (parameter.type.element2 as ClassElement?)?.constructors.first;
+
+      result.add(refer(parameterType, parameterUrl).code);
+      result.add(Code('('));
+      result.addAll(requestBodyConstructor?.parameters
+              .expand((element) => buildNormalCodeList(element)) ??
+          []);
+      result.add(Code('),'));
+
+      return result;
+    }
+
+    for (ParameterElement parameter in constructor.parameters) {
+      if (parameter.metadata.any((element) =>
+          element.element?.source?.uri.toString() ==
+              'package:frouter/annotation/request/request_annotation.dart' &&
+          element.element?.name == 'requestBody')) {
+        if (parameter.isNamed) {
+          codeList.add(Code('${parameter.name}:'));
+        }
+        codeList.addAll(buildRequestBodyCodeList(parameter));
+      } else {
+        codeList.addAll(buildNormalCodeList(parameter));
+      }
+    }
+
+    return codeList;
+  }
+
+  static List<Code> _buildParameterCodeList(
+      BuildScriptItemContentEntity routerItem) {
+    // buildParameterString
 
     // todo: 目前的原则：能跑就行～～ 罗永浩抽象图.jpg
     return [
@@ -274,7 +270,7 @@ class _BuilderHelper {
                   .toString())
           .code,
       Code('('),
-      ...buildParameterCodeList(
+      ..._buildElementConstructorParameterCodeList(
           (routerItem.element as ClassElement).constructors.first),
       Code(');'),
       Code('},'),
@@ -288,7 +284,7 @@ class _RouterBuilder {
       'package:frouter/bin/builder/frouter_widget_builder.dart';
 
   static Method buildRouterMapMethod(
-      List<RouterItemScriptContentEntity> sourceList) {
+      List<BuildScriptItemContentEntity> sourceList) {
     return Method((methodBuilder) {
       methodBuilder
         ..name = 'routerMap'
@@ -319,7 +315,7 @@ class _RouterBuilder {
   }
 
   static Method buildRouterMapBundleMethod(
-      List<RouterItemScriptContentEntity> sourceList) {
+      List<BuildScriptItemContentEntity> sourceList) {
     return Method((methodBuilder) {
       methodBuilder
         ..name = 'routerMapBundle'
@@ -353,7 +349,7 @@ class _ProviderBuilder {
       'package:frouter/bin/builder/frouter_widget_builder.dart';
 
   static Method buildProviderMapMethod(
-      List<RouterItemScriptContentEntity> sourceList) {
+      List<BuildScriptItemContentEntity> sourceList) {
     return Method((methodBuilder) {
       methodBuilder
         ..name = 'providerMap'
@@ -384,7 +380,7 @@ class _ProviderBuilder {
   }
 
   static Method buildProviderMapBundleMethod(
-      List<RouterItemScriptContentEntity> sourceList) {
+      List<BuildScriptItemContentEntity> sourceList) {
     return Method((methodBuilder) {
       methodBuilder
         ..name = 'providerBundle'
@@ -411,4 +407,3 @@ class _ProviderBuilder {
     });
   }
 }
-

@@ -1,4 +1,4 @@
-import 'package:base/base_route_export.dart';
+import 'package:base/base_export.dart';
 import 'package:flutter/material.dart';
 import 'package:frouter/annotation/router.dart';
 import 'package:base/const/base_const_value.dart';
